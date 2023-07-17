@@ -1,23 +1,17 @@
-def getAllPaths(File directory) {
-    def paths = []
-    directory.eachFile { file ->
-        if (file.isDirectory()) {
-            paths << getAllPaths(file) // Recursively call the function for subdirectories
-        } else {
-            paths << file.getAbsolutePath() // Add the path to the list
-        }
+def getGcrPaths(String projectId, String registry) {
+    def command = "gcloud container images list-tags --format='get(digest)' --limit=999999 --filter='*/*' --registry=${registry} --project=${projectId}"
+    def process = command.execute()
+    def paths = process.text.readLines()
+
+    paths.collect { path ->
+        "gcr.io/${projectId}/${path}"
     }
-    return paths.flatten()
 }
 
-def folderPath = 'path/to/your/folder' // Replace 'path/to/your/folder' with the actual folder path
-def folder = new File(folderPath)
+def projectId = 'your-project-id'
+def registry = 'your-registry'
 
-if (folder.isDirectory()) {
-    def allPaths = getAllPaths(folder)
-    allPaths.each { path ->
-        println path // Print each path
-    }
-} else {
-    println "Invalid folder path: $folderPath"
+def gcrPaths = getGcrPaths(projectId, registry)
+gcrPaths.each { path ->
+    println path
 }
