@@ -1,4 +1,4 @@
-ef getAllPaths(File directory) {
+def getAllPaths(File directory) {
     def paths = []
     directory.eachFile { file ->
         if (file.isDirectory()) {
@@ -21,4 +21,3 @@ if (folder.isDirectory()) {
 } else {
     println "Invalid folder path: $folderPath"
 }
-In 
