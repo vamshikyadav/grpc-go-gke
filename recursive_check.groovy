@@ -1,17 +1,31 @@
-def getGcrPaths(String projectId, String registry) {
-    def command = "gcloud container images list-tags --format='get(digest)' --limit=999999 --filter='*/*' --registry=${registry} --project=${projectId}"
-    def process = command.execute()
-    def paths = process.text.readLines()
+@Grab('com.google.cloud:google-cloud-storage:1.128.1')
 
-    paths.collect { path ->
-        "gcr.io/${projectId}/${path}"
+import com.google.cloud.storage.Blob
+import com.google.cloud.storage.Storage
+import com.google.cloud.storage.StorageOptions
+
+def listPathsAndSubpathsInGCR(String projectId, String repositoryName) {
+    def storage = StorageOptions.newBuilder().setProjectId(projectId).build().getService()
+    def bucketName = "artifacts.${projectId}.appspot.com"
+    
+    def blobs = storage.list(bucketName, Storage.BlobListOption.prefix(repositoryName)).iterateAll()
+    
+    def paths = []
+    
+    blobs.each { Blob blob ->
+        def path = blob.getName()
+        paths.add(path)
     }
+    
+    return paths
 }
 
-def projectId = 'your-project-id'
-def registry = 'your-registry'
+// Example usage
+def projectId = "your-project-id"
+def repositoryName = "your-repository-name"
 
-def gcrPaths = getGcrPaths(projectId, registry)
-gcrPaths.each { path ->
-    println path
+def paths = listPathsAndSubpathsInGCR(projectId, repositoryName)
+
+paths.each { path ->
+    println(path)
 }
